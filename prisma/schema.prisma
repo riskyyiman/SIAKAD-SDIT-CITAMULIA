@@ -1,0 +1,111 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql" // Bisa diganti "postgresql" sesuai database Anda 
+  url      = env("DATABASE_URL")
+}
+
+// ENUM Role sesuai laporan [cite: 317]
+enum Role {
+  Admin
+  Guru
+  Wali
+}
+
+// Tabel Users (Pusat Autentikasi) [cite: 313]
+model Users {
+  id_user   Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(50)
+  password  String   @db.VarChar(255)
+  role      Role
+
+  // Relasi
+  guru      Guru?
+  siswa     Siswa[]  @relation("AkunSiswa") // Jika siswa punya akun sendiri
+  // Catatan: Di ERD Laporan, Siswa punya id_user (FK), 
+  // tapi Orang Tua tidak punya tabel sendiri, melainkan relasi ke Siswa via id_ortu.
+  // Untuk login Orang Tua, biasanya menggunakan akun Siswa atau akun khusus Wali.
+  // Disini kita asumsikan Wali login menggunakan kredensial yang tersimpan di Users
+  // yang terhubung ke data siswa.
+}
+
+// Tabel Guru [cite: 320]
+model Guru {
+  nip           String   @id @db.VarChar(20)
+  id_user       Int      @unique
+  nama          String   @db.VarChar(100)
+  no_hp         String   @db.VarChar(15)
+  spesialisasi  String   @db.VarChar(50)
+  
+  user          Users    @relation(fields: [id_user], references: [id_user])
+  kelas_wali    Kelas[]  @relation("WaliKelas")
+}
+
+// Tabel Kelas [cite: 329]
+model Kelas {
+  id_kelas      Int      @id @default(autoincrement())
+  wali_kelas_id String?  @db.VarChar(20)
+  nama_kelas    String   @db.VarChar(10)
+  tahun_ajaran  String   @db.VarChar(10)
+
+  wali_kelas    Guru?    @relation("WaliKelas", fields: [wali_kelas_id], references: [nip])
+  siswa         Siswa[]
+}
+
+// Tabel Siswa [cite: 339]
+model Siswa {
+  nis         String    @id @db.VarChar(20)
+  id_user     Int?      // FK ke Users (Opsional jika siswa login)
+  id_kelas    Int
+  nama        String    @db.VarChar(100)
+  tgl_lahir   DateTime  @db.Date
+  alamat      String    @db.Text
+  id_ortu     Int?      // ID User Orang Tua (Untuk login Wali)
+
+  user        Users?    @relation("AkunSiswa", fields: [id_user], references: [id_user])
+  kelas       Kelas     @relation(fields: [id_kelas], references: [id_kelas])
+  nilai       Nilai[]
+  absensi     Absensi[]
+}
+
+// Tabel Mapel [cite: 340]
+model Mapel {
+  kode_mapel  String   @id @db.VarChar(10)
+  nama_mapel  String   @db.VarChar(50)
+  nilai       Nilai[]
+}
+
+// Tabel Nilai [cite: 355]
+model Nilai {
+  id_nilai    BigInt   @id @default(autoincrement())
+  id_siswa    String   @db.VarChar(20)
+  id_mapel    String   @db.VarChar(10)
+  nilai_tugas Int
+  nilai_uts   Int
+  nilai_uas   Int
+  grade       String   @db.Char(1)
+
+  siswa       Siswa    @relation(fields: [id_siswa], references: [nis])
+  mapel       Mapel    @relation(fields: [id_mapel], references: [kode_mapel])
+}
+
+// Tabel Absensi [cite: 365]
+model Absensi {
+  id_absensi  BigInt   @id @default(autoincrement())
+  id_siswa    String   @db.VarChar(20)
+  tanggal     DateTime @db.Date
+  status      StatusAbsensi
+  keterangan  String?  @db.Text
+
+  siswa       Siswa    @relation(fields: [id_siswa], references: [nis])
+}
+
+enum StatusAbsensi {
+  Hadir
+  Sakit
+  Izin
+  Alpha
+}
