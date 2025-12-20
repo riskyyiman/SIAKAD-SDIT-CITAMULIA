@@ -12,7 +12,6 @@ export async function getSiswa() {
   });
 }
 
-// Fungsi untuk menambah siswa baru ke database [cite: 194, 279]
 export async function addSiswa(formData: FormData) {
   const nama = formData.get('nama') as string;
   const nis = formData.get('nis') as string;
@@ -28,7 +27,6 @@ export async function addSiswa(formData: FormData) {
       id_kelas,
       tgl_lahir,
       alamat,
-      // Tambahkan field lain sesuai schema [cite: 345-351]
     },
   });
 

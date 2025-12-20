@@ -1,6 +1,7 @@
 {
   "name": "siakad-sdit-citamulia",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -27,6 +28,10 @@
     "eslint": "^9",
     "prisma": "5.10.2",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }
