@@ -35,9 +35,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <ul className="space-y-1">
               <NavItem icon={<Users size={18} />} label="Kelola Siswa" href="/dashboard/admin/siswa" active={pathname === '/dashboard/admin/siswa'} />
               <NavItem icon={<MonitorPlay size={18} />} label="Kelola Guru" href="/dashboard/admin/guru" active={pathname === '/dashboard/admin/guru'} />
-              <NavItem icon={<BookOpen size={18} />} label="Kelola Mapel & Kelas" href="/dashboard/admin/mapel" active={pathname === '/dashboard/admin/mapel'} />
-              <NavItem icon={<UserCog size={18} />} label="Kelola Akun" href="/dashboard/admin/akun" active={pathname === '/dashboard/admin/akun'} />
-              <NavItem icon={<Printer size={18} />} label="Cetak Laporan" href="/dashboard/admin/laporan" active={pathname === '/dashboard/admin/laporan'} />
+              <NavItem icon={<BookOpen size={18} />} label="Kelola Mapel & Kelas" href="/dashboard/admin/mapeldankelas" active={pathname === '/dashboard/admin/mapeldankelas'} />
+              <NavItem icon={<UserCog size={18} />} label="Kelola Akun" href="/dashboard/admin/kelolaakun" active={pathname === '/dashboard/admin/kelolaakun'} />
+              <NavItem icon={<Printer size={18} />} label="Cetak Laporan" href="/dashboard/admin/cetaklaporan" active={pathname === '/dashboard/admin/cetaklaporan'} />
             </ul>
           </div>
         </nav>

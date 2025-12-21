@@ -6,6 +6,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, getSession, signOut } from 'next-auth/react';
 import { Laptop, Users, Settings, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
+// data: [
+//       { username: 'admin_utama', nama: 'Muhammad Ahsan Al Wahhab', password: passwordHash, role: 'Admin' },
+//       { username: 'staff_tu01', nama: 'Risky Iman Lal Prasetio', password: passwordHash, role: 'Admin' },
+//     ],
+
 // Komponen Konten Login agar useSearchParams berjalan lancar di Next.js 15+
 function LoginContent() {
   const router = useRouter();

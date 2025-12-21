@@ -1,5 +1,9 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+
+const prisma = new PrismaClient();
 
 const handler = NextAuth({
   providers: [
@@ -10,36 +14,65 @@ const handler = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        // DATA TESTING (Nanti ganti dengan query Prisma)
-        const users = [
-          { id: '1', name: 'Admin TU', username: 'admin', password: '123', role: 'Admin' },
-          { id: '2', name: 'Pak Guru', username: 'guru', password: '123', role: 'Guru' },
-          { id: '3', name: 'Ibu Wali', username: 'wali', password: '123', role: 'Wali' },
-        ];
-
-        const user = users.find((u) => u.username === credentials?.username && u.password === credentials?.password);
-
-        if (user) {
-          return { id: user.id, name: user.name, role: user.role };
+        if (!credentials?.username || !credentials?.password) {
+          throw new Error('Username dan Password wajib diisi');
         }
-        return null;
+
+        // 1. Cari user di database berdasarkan username asli dari tabel users
+        const user = await prisma.users.findUnique({
+          where: { username: credentials.username },
+        });
+
+        // 2. Jika user tidak ditemukan, tampilkan log di terminal untuk memudahkan debug
+        if (!user) {
+          console.log('❌ Login Gagal: Username tidak ditemukan');
+          return null;
+        }
+
+        // 3. Verifikasi password dengan membandingkan input user dan hash di database
+        // Ini mengatasi error 401 karena sebelumnya pengecekan tidak mendukung bcrypt
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+
+        if (!isPasswordValid) {
+          console.log('❌ Login Gagal: Password tidak cocok');
+          return null;
+        }
+
+        console.log('✅ Login Berhasil untuk:', user.username);
+
+        // 4. Kirim data user ke session (menggunakan kolom id_user dan nama yang baru)
+        return {
+          id: user.id_user.toString(),
+          name: user.nama,
+          username: user.username,
+          role: user.role,
+        };
       },
     }),
   ],
   callbacks: {
-    // Memasukkan role ke dalam Token
+    // Memasukkan role dan ID ke dalam Token agar bisa dibawa antar halaman
     async jwt({ token, user }) {
-      if (user) token.role = (user as any).role;
+      if (user) {
+        token.role = (user as any).role;
+        token.id = user.id;
+      }
       return token;
     },
-    // Memasukkan role dari Token ke dalam Session agar bisa dibaca di Frontend
+    // Memasukkan role dari Token ke dalam Session agar bisa dibaca oleh useSession() di Frontend
     async session({ session, token }) {
-      if (session.user) (session.user as any).role = token.role;
+      if (session.user) {
+        (session.user as any).role = token.role;
+        (session.user as any).id = token.id;
+      }
       return session;
     },
   },
   pages: {
-    signIn: '/login',
+    signIn: '/login', // Mengarahkan ke halaman login kustom Anda
+  },
+  session: {
+    strategy: 'jwt', // Menggunakan strategi JWT untuk autentikasi yang lebih cepat
   },
   secret: process.env.NEXTAUTH_SECRET,
 });
